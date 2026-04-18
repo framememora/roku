@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wedding Memories · Refined Lightbox</title>
+    <!-- Romantic fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Montserrat:wght@300;400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: #faf5f0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #4a3b2f;
+            padding: 0;
+            overflow: hidden;
+        }
+
+        .slideshow {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+            overflow: hidden;
+            background: #fffcf9;
+        }
+
+        .morph-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: #fff6f0;
+        }
+
+        .morph-stage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .morph-element {
+            position: absolute;
+            will-change: transform, opacity, filter;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 15px 30px -10px rgba(180, 120, 100, 0.2);
+            transition: box-shadow 0.4s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: #fff;
+            z-index: 1;
+            transform-origin: center center;
+        }
+
+        .morph-element:hover {
+            box-shadow: 0 25px 50px -10px rgba(160, 100, 80, 0.3);
+            border-color: #e6b89c;
+        }
+
+        .morph-element img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+            pointer-events: none;
+        }
+
+        .morph-element .text-content {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            background: rgba(255, 245, 235, 0.7);
+            backdrop-filter: blur(3px);
+            color: #4a3b2f;
+            text-align: center;
+            font-family: 'Cormorant Garamond', serif;
+        }
+
+        .text-content h2 {
+            font-size: clamp(2rem, 8vw, 5rem);
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5rem;
+            color: #9b6b4b;
+            line-height: 1.2;
+            text-shadow: 1px 1px 2px rgba(255,255,255,0.5);
+        }
+
+        .text-content p {
+            font-size: clamp(1.2rem, 4vw, 2.5rem);
+            font-weight: 400;
+            font-family: 'Montserrat', sans-serif;
+            color: #7a5a4a;
+            letter-spacing: 0.5px;
+            opacity: 0.9;
+        }
+
+        /* Lightbox overlay */
+        .enlarge-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 90;
+        }
+
+        /* Close button for lightbox */
+        .close-lightbox {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: rgba(255, 240, 230, 0.8);
+            border: 1px solid #e6b89c;
+            color: #9b6b4b;
+            font-size: 2.5rem;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 110;
+            opacity: 0;
+            pointer-events: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
+        .close-lightbox:hover {
+            background: #e6b89c;
+            color: white;
+            transform: scale(1.1);
+        }
+
+        /* Navigation */
+        .nav-arrows {
+            position: absolute;
+            bottom: 30px;
+            right: 30px;
+            display: flex;
+            gap: 15px;
+            z-index: 20;
+        }
+
+        .arrow {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            background: rgba(255, 240, 230, 0.7);
+            border: 1px solid #e6b89c;
+            color: #9b6b4b;
+            font-size: 2.4rem;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(180, 120, 100, 0.1);
+        }
+
+        .arrow:hover {
+            background: #e6b89c;
+            color: white;
+            transform: scale(1.1);
+            border-color: #e6b89c;
+        }
+
+        .counter {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            font-size: 1.6rem;
+            color: #7a5a4a;
+            z-index: 20;
+            backdrop-filter: blur(4px);
+            padding: 0.8rem 1.8rem;
+            border-radius: 40px;
+            background: rgba(255, 240, 230, 0.7);
+            border: 1px solid #e6b89c;
+            font-weight: 500;
+            letter-spacing: 1px;
+        }
+
+        .counter span {
+            font-weight: 700;
+            color: #9b6b4b;
+            font-size: 2.2rem;
+            margin-right: 0.3rem;
+        }
+
+        .dots {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 18px;
+            z-index: 20;
+            flex-wrap: wrap;
+            justify-content: center;
+            max-width: 70%;
+        }
+
+        .dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: rgba(180, 140, 120, 0.4);
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.3s;
+            padding: 0;
+            flex-shrink: 0;
+        }
+
+        .dot.active {
+            background: #e6b89c;
+            transform: scale(1.4);
+            border-color: #fff;
+            box-shadow: 0 0 0 2px rgba(230, 184, 156, 0.3);
+        }
+
+        /* Decorative corner accent */
+        .slideshow::before {
+            content: "⚘";
+            position: absolute;
+            top: 20px;
+            left: 30px;
+            font-size: 3rem;
+            color: #e6b89c;
+            opacity: 0.3;
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .slideshow::after {
+            content: "⚘";
+            position: absolute;
+            bottom: 20px;
+            right: 30px;
+            font-size: 3rem;
+            color: #e6b89c;
+            opacity: 0.3;
+            z-index: 5;
+            pointer-events: none;
+            transform: rotate(180deg);
+        }
+
+        @media (max-width: 768px) {
+            .arrow {
+                width: 50px;
+                height: 50px;
+                font-size: 1.8rem;
+            }
+            .counter {
+                font-size: 1.2rem;
+                padding: 0.5rem 1.2rem;
+            }
+            .dots {
+                gap: 12px;
+            }
+            .dot {
+                width: 12px;
+                height: 12px;
+            }
+            .slideshow::before, .slideshow::after {
+                font-size: 2rem;
+            }
+            .close-lightbox {
+                top: 20px;
+                right: 20px;
+                width: 50px;
+                height: 50px;
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="slideshow">
+        <div class="morph-container">
+            <div class="morph-stage" id="morphStage">
+                <!-- Lightbox overlay (inserted by JS) -->
+            </div>
+
+            <!-- Close button (hidden initially) -->
+            <button class="close-lightbox" id="closeLightbox" aria-label="Close">✕</button>
+
+            <div class="counter"><span>1</span> / 10</div>
+            <div class="dots" id="dotsContainer"></div>
+            <div class="nav-arrows">
+                <button class="arrow arrow-prev" aria-label="Previous slide">←</button>
+                <button class="arrow arrow-next" aria-label="Next slide">→</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <script>
+        (function() {
+            "use strict";
+
+            // ---------- CONFIGURATION ----------
+            const SLIDE_DATA = [
+                // Slide 1
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600', alt: 'Engagement couple' },
+                        { id: 'B', type: 'text', title: 'Emma & James', desc: '12.06.2025' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600', alt: 'Rings' },
+                        { id: 'D', type: 'text', title: 'Save the Date', desc: 'Celebrate with us' }
+                    ],
+                    positions: {
+                        A: { top: 5, left: 5, width: 55, height: 60 },
+                        B: { top: 10, left: 65, width: 30, height: 18 },
+                        C: { top: 45, left: 65, width: 30, height: 45 },
+                        D: { top: 70, left: 10, width: 35, height: 15 }
+                    }
+                },
+                // Slide 2
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600', alt: 'Bouquet' },
+                        { id: 'B', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Venue decor' },
+                        { id: 'C', type: 'text', title: 'Floral Dreams', desc: 'Garden roses & peonies' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600', alt: 'Wedding cake' }
+                    ],
+                    positions: {
+                        A: { top: 10, left: 5, width: 40, height: 50 },
+                        B: { top: 35, left: 50, width: 45, height: 55 },
+                        C: { top: 5, left: 60, width: 30, height: 18 },
+                        D: { top: 70, left: 10, width: 30, height: 25 }
+                    }
+                },
+                // Slide 3
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1460364157752-926555421a7e?w=600', alt: 'Bride and groom hands' },
+                        { id: 'B', type: 'text', title: 'The Vows', desc: 'Under the oak tree' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=600', alt: 'Church interior' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1505238680356-667803448bb6?w=600', alt: 'Wedding party' }
+                    ],
+                    positions: {
+                        A: { top: 0, left: 0, width: 60, height: 70 },
+                        B: { top: 15, left: 65, width: 30, height: 15 },
+                        C: { top: 45, left: 65, width: 30, height: 40 },
+                        D: { top: 65, left: 5, width: 40, height: 30 }
+                    }
+                },
+                // Slide 4
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600', alt: 'First dance' },
+                        { id: 'B', type: 'text', title: 'Dinner & Dancing', desc: 'Celebration begins' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600', alt: 'Cake table' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Centerpieces' }
+                    ],
+                    positions: {
+                        A: { top: 20, left: 20, width: 55, height: 55 },
+                        B: { top: 10, left: 10, width: 30, height: 15 },
+                        C: { top: 60, left: 60, width: 35, height: 35 },
+                        D: { top: 30, left: 65, width: 25, height: 25 }
+                    }
+                },
+                // Slide 5
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=600', alt: 'Sparklers' },
+                        { id: 'B', type: 'text', title: 'Thank You', desc: 'For your love & presence' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Confetti' },
+                        { id: 'D', type: 'text', title: 'Emma & James', desc: 'Happily ever after' }
+                    ],
+                    positions: {
+                        A: { top: 10, left: 5, width: 45, height: 60 },
+                        B: { top: 5, left: 55, width: 40, height: 15 },
+                        C: { top: 30, left: 55, width: 40, height: 50 },
+                        D: { top: 70, left: 15, width: 30, height: 15 }
+                    }
+                },
+                // Slide 6
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600', alt: 'Bride getting ready' },
+                        { id: 'B', type: 'text', title: 'Getting Ready', desc: 'Nervous excitement' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600', alt: 'Bride and father' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600', alt: 'Shoes and bouquet' }
+                    ],
+                    positions: {
+                        A: { top: 5, left: 30, width: 45, height: 50 },
+                        B: { top: 15, left: 5, width: 20, height: 12 },
+                        C: { top: 45, left: 5, width: 30, height: 40 },
+                        D: { top: 60, left: 70, width: 25, height: 30 }
+                    }
+                },
+                // Slide 7
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Ceremony aisle' },
+                        { id: 'B', type: 'text', title: 'Walking Down', desc: 'Aisle of petals' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1519741497674-611481863552?w=600', alt: 'Exchange of rings' },
+                        { id: 'D', type: 'text', title: 'I Do', desc: 'Forever begins' }
+                    ],
+                    positions: {
+                        A: { top: 0, left: 20, width: 60, height: 70 },
+                        B: { top: 10, left: 5, width: 30, height: 15 },
+                        C: { top: 50, left: 60, width: 35, height: 40 },
+                        D: { top: 75, left: 30, width: 30, height: 15 }
+                    }
+                },
+                // Slide 8
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1507504031003-b417219a0fde?w=600', alt: 'Wedding arch' },
+                        { id: 'B', type: 'image', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600', alt: 'Bride portrait' },
+                        { id: 'C', type: 'text', title: 'The Location', desc: 'Vineyard ceremony' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1460364157752-926555421a7e?w=600', alt: 'Guests' }
+                    ],
+                    positions: {
+                        A: { top: 10, left: 5, width: 40, height: 50 },
+                        B: { top: 25, left: 50, width: 45, height: 60 },
+                        C: { top: 5, left: 60, width: 35, height: 15 },
+                        D: { top: 70, left: 10, width: 30, height: 25 }
+                    }
+                },
+                // Slide 9
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1511285560929-80b456fea0bc?w=600', alt: 'Kiss' },
+                        { id: 'B', type: 'text', title: 'The Kiss', desc: 'Cheers and tears' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Rice throwing' },
+                        { id: 'D', type: 'image', src: 'https://images.unsplash.com/photo-1520854221256-17451cc331bf?w=600', alt: 'Celebration' }
+                    ],
+                    positions: {
+                        A: { top: 5, left: 5, width: 55, height: 65 },
+                        B: { top: 15, left: 65, width: 30, height: 18 },
+                        C: { top: 50, left: 65, width: 30, height: 40 },
+                        D: { top: 70, left: 10, width: 35, height: 20 }
+                    }
+                },
+                // Slide 10
+                {
+                    elements: [
+                        { id: 'A', type: 'image', src: 'https://images.unsplash.com/photo-1519225421980-715cb0215aed?w=600', alt: 'Wedding car' },
+                        { id: 'B', type: 'text', title: 'Just Married', desc: 'Off to paradise' },
+                        { id: 'C', type: 'image', src: 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=600', alt: 'Fireworks' },
+                        { id: 'D', type: 'text', title: 'Emma & James', desc: 'The beginning' }
+                    ],
+                    positions: {
+                        A: { top: 20, left: 5, width: 50, height: 55 },
+                        B: { top: 10, left: 60, width: 35, height: 15 },
+                        C: { top: 45, left: 60, width: 35, height: 45 },
+                        D: { top: 75, left: 15, width: 30, height: 15 }
+                    }
+                }
+            ];
+
+            // ---------- DOM ELEMENTS ----------
+            const morphStage = document.getElementById('morphStage');
+            const counterSpan = document.querySelector('.counter span');
+            const dotsContainer = document.getElementById('dotsContainer');
+            const prevBtn = document.querySelector('.arrow-prev');
+            const nextBtn = document.querySelector('.arrow-next');
+            const closeBtn = document.getElementById('closeLightbox');
+
+            // Create overlay
+            const overlay = document.createElement('div');
+            overlay.className = 'enlarge-overlay';
+            morphStage.appendChild(overlay);
+
+            // ---------- STATE ----------
+            const totalSlides = SLIDE_DATA.length;
+            let currentSlide = 0;
+            let isAnimating = false;
+            let autoPlayInterval;
+            let isEnlarged = false;
+            let enlargedElement = null;
+            let originalState = null; // stores GSAP properties before enlarge
+
+            // ---------- INITIAL SETUP ----------
+            // Create persistent elements (A, B, C, D)
+            const elementMap = new Map();
+            ['A', 'B', 'C', 'D'].forEach(id => {
+                const div = document.createElement('div');
+                div.className = 'morph-element';
+                div.dataset.id = id;
+                morphStage.appendChild(div);
+                elementMap.set(id, div);
+            });
+
+            // Create navigation dots
+            for (let i = 0; i < totalSlides; i++) {
+                const dot = document.createElement('button');
+                dot.classList.add('dot');
+                dot.dataset.index = i;
+                dot.setAttribute('aria-label', `Go to slide ${i+1}`);
+                dot.addEventListener('click', () => goToSlide(i));
+                dotsContainer.appendChild(dot);
+            }
+
+            // ---------- UI UPDATE ----------
+            function updateUI(index) {
+                counterSpan.textContent = index + 1;
+                document.querySelectorAll('.dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === index);
+                });
+            }
+
+            // Update element content based on slide (preserves structure)
+            function updateElementContent(slideIndex) {
+                const slide = SLIDE_DATA[slideIndex];
+                slide.elements.forEach(elemData => {
+                    const el = elementMap.get(elemData.id);
+                    if (!el) return;
+                    el.innerHTML = '';
+                    if (elemData.type === 'image') {
+                        const img = document.createElement('img');
+                        img.src = elemData.src;
+                        img.alt = elemData.alt || '';
+                        el.appendChild(img);
+                    } else {
+                        const contentDiv = document.createElement('div');
+                        contentDiv.className = 'text-content';
+                        const h2 = document.createElement('h2');
+                        h2.textContent = elemData.title;
+                        const p = document.createElement('p');
+                        p.textContent = elemData.desc;
+                        contentDiv.appendChild(h2);
+                        contentDiv.appendChild(p);
+                        el.appendChild(contentDiv);
+                    }
+                });
+            }
+
+            // ---------- LIGHTBOX (ENLARGE / CLOSE) ----------
+            function closeEnlarge() {
+                if (!enlargedElement || !originalState) return;
+
+                // Hide overlay and close button
+                gsap.to(overlay, { opacity: 0, duration: 0.3, pointerEvents: 'none' });
+                gsap.to(closeBtn, { opacity: 0, duration: 0.2, pointerEvents: 'none' });
+
+                // Animate back to original position
+                gsap.to(enlargedElement, {
+                    x: originalState.x,
+                    y: originalState.y,
+                    width: originalState.width,
+                    height: originalState.height,
+                    scaleX: originalState.scaleX,
+                    scaleY: originalState.scaleY,
+                    zIndex: originalState.zIndex,
+                    boxShadow: originalState.boxShadow,
+                    duration: 0.4,
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        isEnlarged = false;
+                        enlargedElement = null;
+                        originalState = null;
+                    }
+                });
+            }
+
+            function enlargeElement(el) {
+                if (isEnlarged) {
+                    closeEnlarge();
+                    return;
+                }
+
+                // Save original state
+                originalState = {
+                    x: gsap.getProperty(el, 'x'),
+                    y: gsap.getProperty(el, 'y'),
+                    width: parseFloat(el.style.width),
+                    height: parseFloat(el.style.height),
+                    scaleX: gsap.getProperty(el, 'scaleX'),
+                    scaleY: gsap.getProperty(el, 'scaleY'),
+                    zIndex: el.style.zIndex || 1,
+                    boxShadow: el.style.boxShadow || '0 15px 30px -10px rgba(180, 120, 100, 0.2)'
+                };
+
+                // Compute target size to fit within 90% of container while preserving aspect ratio
+                const container = morphStage;
+                const containerW = container.clientWidth;
+                const containerH = container.clientHeight;
+                const aspect = originalState.width / originalState.height;
+
+                let targetW = containerW * 0.9;
+                let targetH = targetW / aspect;
+                if (targetH > containerH * 0.9) {
+                    targetH = containerH * 0.9;
+                    targetW = targetH * aspect;
+                }
+
+                const targetX = (containerW - targetW) / 2;
+                const targetY = (containerH - targetH) / 2;
+
+                // Show overlay and close button
+                gsap.to(overlay, { opacity: 1, duration: 0.3, pointerEvents: 'auto' });
+                gsap.to(closeBtn, { opacity: 1, duration: 0.3, pointerEvents: 'auto' });
+
+                // Animate element to lightbox
+                gsap.to(el, {
+                    x: targetX,
+                    y: targetY,
+                    width: targetW,
+                    height: targetH,
+                    scaleX: 1,
+                    scaleY: 1,
+                    zIndex: 200,
+                    boxShadow: '0 40px 80px rgba(0,0,0,0.5)',
+                    duration: 0.5,
+                    ease: 'power2.out',
+                    overwrite: true
+                });
+
+                isEnlarged = true;
+                enlargedElement = el;
+            }
+
+            // ---------- EVENT LISTENERS ----------
+            // Click on element to enlarge
+            elementMap.forEach(el => {
+                el.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    enlargeElement(el);
+                });
+            });
+
+            // Click on overlay to close
+            overlay.addEventListener('click', closeEnlarge);
+
+            // Click on close button
+            closeBtn.addEventListener('click', closeEnlarge);
+
+            // Click on stage (empty area) also closes (optional)
+            morphStage.addEventListener('click', (e) => {
+                if (e.target === morphStage) {
+                    closeEnlarge();
+                }
+            });
+
+            // Keyboard: ESC to close lightbox
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && isEnlarged) {
+                    closeEnlarge();
+                }
+            });
+
+            // ---------- SLIDE TRANSITION (MORPH) ----------
+            function goToSlide(newIndex) {
+                if (isAnimating || newIndex === currentSlide) return;
+                if (isEnlarged) closeEnlarge(); // close lightbox before changing slide
+
+                isAnimating = true;
+
+                const targetSlide = SLIDE_DATA[newIndex];
+                const currentPositions = SLIDE_DATA[currentSlide].positions;
+                const targetPositions = targetSlide.positions;
+
+                const container = morphStage;
+                const containerW = container.clientWidth;
+                const containerH = container.clientHeight;
+
+                const tl = gsap.timeline({
+                    onComplete: () => {
+                        updateElementContent(newIndex);
+                        currentSlide = newIndex;
+                        updateUI(currentSlide);
+                        isAnimating = false;
+                    }
+                });
+
+                elementMap.forEach((el, id) => {
+                    const from = currentPositions[id] || { top: 0, left: 0, width: 0, height: 0 };
+                    const to = targetPositions[id] || { top: 0, left: 0, width: 0, height: 0 };
+
+                    const presentInTarget = targetSlide.elements.some(e => e.id === id);
+                    const targetOpacity = presentInTarget ? 1 : 0;
+                    const targetScale = presentInTarget ? 1 : 0.01;
+
+                    const fromX = (from.left / 100) * containerW;
+                    const fromY = (from.top / 100) * containerH;
+                    const fromWidth = (from.width / 100) * containerW;
+                    const fromHeight = (from.height / 100) * containerH;
+
+                    const toX = (to.left / 100) * containerW;
+                    const toY = (to.top / 100) * containerH;
+                    const toWidth = (to.width / 100) * containerW;
+                    const toHeight = (to.height / 100) * containerH;
+
+                    gsap.set(el, {
+                        x: fromX,
+                        y: fromY,
+                        width: fromWidth,
+                        height: fromHeight,
+                        opacity: 1,
+                        scaleX: 1,
+                        scaleY: 1,
+                        zIndex: 1
+                    });
+
+                    tl.to(el, {
+                        x: toX,
+                        y: toY,
+                        width: toWidth,
+                        height: toHeight,
+                        opacity: targetOpacity,
+                        scaleX: targetScale,
+                        scaleY: targetScale,
+                        duration: 1.3,
+                        ease: 'power2.inOut'
+                    }, 0);
+                });
+            }
+
+            // ---------- INITIAL POSITIONING ----------
+            function setInitialSlide() {
+                const container = morphStage;
+                const containerW = container.clientWidth;
+                const containerH = container.clientHeight;
+                const pos = SLIDE_DATA[0].positions;
+
+                elementMap.forEach((el, id) => {
+                    const p = pos[id] || { top: 0, left: 0, width: 0, height: 0 };
+                    const x = (p.left / 100) * containerW;
+                    const y = (p.top / 100) * containerH;
+                    const w = (p.width / 100) * containerW;
+                    const h = (p.height / 100) * containerH;
+                    gsap.set(el, { x, y, width: w, height: h, opacity: 1, scaleX: 1, scaleY: 1, zIndex: 1 });
+                });
+                updateElementContent(0);
+                updateUI(0);
+            }
+
+            // ---------- RESIZE HANDLING ----------
+            window.addEventListener('resize', () => {
+                if (isEnlarged) closeEnlarge(); // close lightbox to avoid misalignment
+
+                const container = morphStage;
+                const containerW = container.clientWidth;
+                const containerH = container.clientHeight;
+                const pos = SLIDE_DATA[currentSlide].positions;
+
+                elementMap.forEach((el, id) => {
+                    const p = pos[id] || { top: 0, left: 0, width: 0, height: 0 };
+                    const x = (p.left / 100) * containerW;
+                    const y = (p.top / 100) * containerH;
+                    const w = (p.width / 100) * containerW;
+                    const h = (p.height / 100) * containerH;
+                    gsap.set(el, { x, y, width: w, height: h });
+                });
+            });
+
+            // ---------- NAVIGATION ----------
+            prevBtn.addEventListener('click', () => {
+                if (isAnimating || isEnlarged) return;
+                const next = (currentSlide - 1 + totalSlides) % totalSlides;
+                goToSlide(next);
+            });
+
+            nextBtn.addEventListener('click', () => {
+                if (isAnimating || isEnlarged) return;
+                const next = (currentSlide + 1) % totalSlides;
+                goToSlide(next);
+            });
+
+            // ---------- AUTO-PLAY ----------
+            function startAutoPlay() {
+                stopAutoPlay();
+                autoPlayInterval = setInterval(() => {
+                    if (!isAnimating && !isEnlarged) {
+                        const next = (currentSlide + 1) % totalSlides;
+                        goToSlide(next);
+                    }
+                }, 5000);
+            }
+            function stopAutoPlay() {
+                if (autoPlayInterval) clearInterval(autoPlayInterval);
+            }
+
+            morphStage.addEventListener('mouseenter', stopAutoPlay);
+            morphStage.addEventListener('mouseleave', startAutoPlay);
+
+            // ---------- MOUSE WHEEL ----------
+            morphStage.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                if (isAnimating || isEnlarged) return;
+                if (e.deltaY > 0) {
+                    const next = (currentSlide + 1) % totalSlides;
+                    goToSlide(next);
+                } else {
+                    const next = (currentSlide - 1 + totalSlides) % totalSlides;
+                    goToSlide(next);
+                }
+            }, { passive: false });
+
+            // ---------- KEYBOARD (LEFT/RIGHT) ----------
+            window.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') {
+                    e.preventDefault();
+                    if (!isAnimating && !isEnlarged) {
+                        const next = (currentSlide - 1 + totalSlides) % totalSlides;
+                        goToSlide(next);
+                    }
+                } else if (e.key === 'ArrowRight') {
+                    e.preventDefault();
+                    if (!isAnimating && !isEnlarged) {
+                        const next = (currentSlide + 1) % totalSlides;
+                        goToSlide(next);
+                    }
+                }
+            });
+
+            // ---------- START ----------
+            window.addEventListener('load', () => {
+                setInitialSlide();
+                startAutoPlay();
+            });
+
+        })();
+    </script>
+</body>
+</html>
